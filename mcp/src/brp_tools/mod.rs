@@ -30,6 +30,7 @@ pub use port::Port;
 //
 // Export all tool parameter and result structs via the tools facade
 pub use tools::BrpExecute;
+pub use tools::BrpExecuteAgentTool;
 pub use tools::BrpExtrasScreenshot;
 pub use tools::BrpListAgentTools;
 pub use tools::ClickMouseParams;

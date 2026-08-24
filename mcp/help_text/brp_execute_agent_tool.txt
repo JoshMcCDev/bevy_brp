@@ -1,0 +1,8 @@
+Execute a developer-published, agent-safe BRP method.
+
+The tool fetches brp_extras/agent_tools from the selected app, requires an exact backing-method
+match, then confirms the method is still present in rpc.discover before forwarding raw JSON params.
+It rejects generic BRP methods absent from the app-owned catalog.
+
+Use brp_list_agent_tools first and pass a selected record's method and matching parameters. Use
+brp_execute only for generic BRP compatibility or deliberate debugging outside this curated path.

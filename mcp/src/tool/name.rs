@@ -37,6 +37,7 @@ use crate::brp_tools::AllTypeGuidesParams;
 use crate::brp_tools::BevyListWatch;
 use crate::brp_tools::BrpAllTypeGuides;
 use crate::brp_tools::BrpExecute;
+use crate::brp_tools::BrpExecuteAgentTool;
 use crate::brp_tools::BrpExtrasScreenshot;
 use crate::brp_tools::BrpListActiveWatches;
 use crate::brp_tools::BrpListAgentTools;
@@ -295,6 +296,8 @@ pub enum ToolName {
     // BRP Execute Tool
     /// `brp_execute` - Execute arbitrary BRP method
     BrpExecute,
+    /// `brp_execute_agent_tool` - Execute a developer-published agent-safe BRP method
+    BrpExecuteAgentTool,
     /// `brp_list_agent_tools` - List developer-published application method guidance
     BrpListAgentTools,
 
@@ -556,6 +559,11 @@ impl ToolName {
                 ToolCategory::DynamicBrp,
                 EnvironmentImpact::DestructiveNonIdempotent,
             ),
+            Self::BrpExecuteAgentTool => Annotation::new(
+                "execute curated agent tool",
+                ToolCategory::DynamicBrp,
+                EnvironmentImpact::DestructiveNonIdempotent,
+            ),
             Self::BrpListAgentTools => Annotation::new(
                 "list agent tools",
                 ToolCategory::Discovery,
@@ -769,6 +777,7 @@ impl ToolName {
                 Some(parameters::build_parameters_from::<TriggerEventParams>)
             },
             Self::BrpExecute => Some(parameters::build_parameters_from::<ExecuteParams>),
+            Self::BrpExecuteAgentTool => Some(parameters::build_parameters_from::<ExecuteParams>),
             Self::BrpListAgentTools => {
                 Some(parameters::build_parameters_from::<ListAgentToolsParams>)
             },
@@ -877,6 +886,7 @@ impl ToolName {
 
             // Special tools with their own implementations
             Self::BrpExecute => Arc::new(BrpExecute),
+            Self::BrpExecuteAgentTool => Arc::new(BrpExecuteAgentTool),
             Self::BrpListAgentTools => Arc::new(BrpListAgentTools),
             Self::WorldGetComponentsWatch => Arc::new(WorldGetComponentsWatch),
             Self::WorldListComponentsWatch => Arc::new(BevyListWatch),
@@ -934,6 +944,35 @@ mod tests {
     }
 
     #[test]
+    fn curated_execute_is_a_registered_dynamic_tool_with_the_generic_schema() {
+        let tool_name = ToolName::BrpExecuteAgentTool;
+        let annotations = ToolAnnotations::from(tool_name.get_annotations());
+        let definitions = crate::tool::get_all_tool_definitions();
+
+        assert_eq!(tool_name.to_string(), "brp_execute_agent_tool");
+        assert_eq!(tool_name.to_brp_method(), None);
+        assert_eq!(annotations.read_only_hint, Some(false));
+        assert_eq!(annotations.destructive_hint, Some(true));
+        assert_eq!(annotations.idempotent_hint, Some(false));
+        assert!(definitions
+            .iter()
+            .any(|definition| definition.tool_name == tool_name));
+
+        let parameters = tool_name.get_parameters();
+        assert!(parameters.is_some());
+        if let Some(build_parameters) = parameters {
+            let schema = build_parameters().build();
+            let properties = schema.get("properties").and_then(Value::as_object);
+            assert!(properties.is_some());
+            if let Some(properties) = properties {
+                assert!(properties.contains_key("method"));
+                assert!(properties.contains_key("params"));
+                assert!(properties.contains_key("port"));
+            }
+        }
+    }
+
+    #[test]
     fn agent_catalog_is_a_registered_read_only_discovery_tool() {
         let tool_name = ToolName::BrpListAgentTools;
         let annotations = ToolAnnotations::from(tool_name.get_annotations());
@@ -973,19 +1012,22 @@ mod tests {
     }
 
     #[test]
-    fn agent_catalog_help_cross_links_discovery_and_execution_without_native_tools() {
+    fn agent_catalog_help_cross_links_curated_execution_without_native_tools() {
         let catalog_help = ToolName::BrpListAgentTools
             .description()
             .split_whitespace()
             .collect::<Vec<_>>()
             .join(" ");
         let execute_help = ToolName::BrpExecute.description();
+        let curated_execute_help = ToolName::BrpExecuteAgentTool.description();
         let discover_help = ToolName::RpcDiscover.description();
 
         assert!(catalog_help.contains("rpc_discover"));
-        assert!(catalog_help.contains("brp_execute"));
+        assert!(catalog_help.contains("brp_execute_agent_tool"));
         assert!(catalog_help.contains("not native MCP tools"));
-        assert!(execute_help.contains("brp_list_agent_tools"));
+        assert!(execute_help.contains("compatibility escape hatch"));
+        assert!(curated_execute_help.contains("brp_list_agent_tools"));
+        assert!(curated_execute_help.contains("rpc.discover"));
         assert!(execute_help.contains("rpc.discover"));
         assert!(discover_help.contains("brp_list_agent_tools"));
         assert!(discover_help.contains("brp_execute"));

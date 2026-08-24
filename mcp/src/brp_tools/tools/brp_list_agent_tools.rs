@@ -31,7 +31,7 @@ pub struct ListAgentToolsParams {
 pub(crate) struct ListedAgentTool {
     /// Agent-facing tool name.
     pub name:          String,
-    /// Exact backing BRP method for `brp_execute`.
+    /// Exact backing BRP method for `brp_execute_agent_tool`.
     pub method:        String,
     /// Agent-facing description of the operation.
     pub description:   String,

@@ -2,7 +2,8 @@ List curated BRP records published by the running application's developer.
 
 The public structured result puts instructions in result.usage and records in result.tools. Each
 record includes its exact backing method and optional raw parameter/result JSON Schemas. Follow the
-usage, then pass a selected method and matching raw params to brp_execute. Records are not native
+usage, then pass a selected method and matching raw params to brp_execute_agent_tool. Records are
+not native
 MCP tools; rpc_discover instead exhaustively lists transport method names.
 
 Each request validates every record against the live instant methods and returns either the full
