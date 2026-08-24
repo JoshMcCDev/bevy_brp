@@ -1,6 +1,7 @@
 //! Individual tool modules containing parameter and result structs for each BRP tool
 
 mod brp_execute;
+mod brp_execute_agent_tool;
 mod brp_extras_click_mouse;
 mod brp_extras_double_click_mouse;
 mod brp_extras_double_tap_gesture;
@@ -37,6 +38,7 @@ mod world_trigger_event;
 
 pub use brp_execute::BrpExecute;
 pub use brp_execute::ExecuteParams;
+pub use brp_execute_agent_tool::BrpExecuteAgentTool;
 pub use brp_extras_click_mouse::ClickMouseParams;
 pub use brp_extras_click_mouse::ClickMouseResult;
 pub use brp_extras_double_click_mouse::DoubleClickMouseParams;

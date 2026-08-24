@@ -128,7 +128,7 @@ agents. List those records first, then execute a selected backing method:
 ```text
 cargo run -p bevy_brp_extras --example agent_tool_registration
 brp_list_agent_tools(port: 15702)
-brp_execute(
+brp_execute_agent_tool(
     port: 15702,
     method: "example/multiply",
     params: { "value": 6, "factor": 7 }
@@ -138,7 +138,7 @@ brp_execute(
 `brp_list_agent_tools` returns the public structured `result` with `usage` and `tools`. Each record
 in `result.tools` contains an agent-facing name and description, its exact backing BRP method, and
 optional raw JSON schemas for that method's JSON-RPC parameters and result. Follow `result.usage`
-and invoke the selected method with `brp_execute`:
+and invoke the selected method with `brp_execute_agent_tool`:
 
 ```json
 {
@@ -151,9 +151,13 @@ and invoke the selected method with `brp_execute`:
 }
 ```
 
-`brp_execute` confirms that the selected app reports the method through `rpc.discover` before
-forwarding the raw parameters. Catalog records are not native MCP tools. Every published record
-names a BRP method, while most registered BRP methods need not be in the curated agent list.
+`brp_execute_agent_tool` forwards only a method named by the selected app's curated agent catalog,
+then confirms that the same live app still reports that method through `rpc.discover`. Catalog
+records are not native MCP tools. Registered methods absent from the curated catalog, including
+generic mutation methods, cannot be reached through `brp_execute_agent_tool`.
+
+`brp_execute` remains available for applications that expose BRP without BrpExtrasPlugin or an
+agent catalog. It verifies only live `rpc.discover` membership and is not the curated workflow.
 
 Each catalog request validates all published records against the live `RemoteMethods` resource. If
 any backing method is missing or watching, no partial list is returned; the BRP error data identifies

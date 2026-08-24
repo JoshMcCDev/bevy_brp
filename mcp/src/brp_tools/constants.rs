@@ -3,7 +3,7 @@ use std::ops::RangeInclusive;
 // agent tool catalog constants
 pub(super) const AGENT_TOOL_CATALOG_METHOD: &str = "brp_extras/agent_tools";
 pub(super) const AGENT_TOOL_CATALOG_USAGE: &str =
-    "Pass an entry's method and matching params to brp_execute.";
+    "Pass an entry's method and matching params to brp_execute_agent_tool.";
 pub(super) const AGENT_TOOL_CATALOG_VERSION: u32 = 1;
 
 // network constants

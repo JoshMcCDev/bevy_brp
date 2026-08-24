@@ -1,6 +1,4 @@
-//! `brp_execute` allows for executing an arbitrary BRP method - generally this is used as a
-//! debugging tool for his MCP server but can also be used if (for example) a new brp method is
-//! added before it's been implemented in this server code.
+//! `brp_execute` allows for executing any discovered BRP method.
 use async_trait::async_trait;
 use bevy_brp_mcp_macros::ParamStruct;
 use bevy_brp_mcp_macros::ResultStruct;
@@ -30,7 +28,7 @@ pub struct ExecuteParams {
     pub port:   Port,
 }
 
-/// Result type for the dynamic BRP execute tool
+/// Result type for a dynamic BRP execute tool.
 #[derive(Serialize, ResultStruct)]
 #[brp_result]
 pub struct ExecuteResult {
@@ -52,6 +50,16 @@ impl ToolFn for BrpExecute {
     type Params = ExecuteParams;
 
     async fn handle_impl(&self, params: ExecuteParams) -> Result<ExecuteResult> {
+        execute_discovered(&params).await
+    }
+}
+
+/// Confirms a BRP method remains registered, then forwards its raw parameters.
+///
+/// Both generic and curated dynamic execution use this path so their live-discovery and response
+/// behavior cannot drift. Curated authorization is intentionally performed by its caller before
+/// this function runs.
+pub(super) async fn execute_discovered(params: &ExecuteParams) -> Result<ExecuteResult> {
         let method_names = rpc_discover::discover_method_names(params.port).await?;
         if !method_is_registered(&method_names, &params.method) {
             let mut available_methods = method_names;
@@ -91,10 +99,9 @@ impl ToolFn for BrpExecute {
             )
             .into()),
         }
-    }
 }
 
-fn method_is_registered(method_names: &[String], requested_method: &str) -> bool {
+pub(super) fn method_is_registered(method_names: &[String], requested_method: &str) -> bool {
     method_names.iter().any(|method| method == requested_method)
 }
 
